@@ -25,7 +25,62 @@ fn main() -> io::Result<( )>{
 
         println!("read from server:{}",str::from_utf8(&buffer).unwrap());
         println!("");
+        signin();
     }
     Ok(())
 }
+
+
+fn check_pass(pass: String) -> bool {
+
+    //. . . . . .. .
+    //......
+    return pass == pass;
+
+}
+
+struct User {
+    id: u64,
+    login: String,
+    pass_hash: String,
+}
+use server::create_user;
+fn signin()  -> User { println!("Process of signing in started\nEnter your login what already exist or which you wonna create"); // entering login loop {
+                                                                                                                        // 00
+    loop {                                                                                                                        //
+                                                                                                                        //
+        let mut login = &mut String::new();
+        let stdin = io::stdin();
+
+        stdin.read_line(login).unwrap();
+        login.pop();
+
+        if login.chars().all(|c| c.is_alphabetic()) {
+        }
+        else {
+                println!("Use only latin alphabet symbols\nTry again");
+                println!("Your input: {}", login);
+                continue;
+        }
+
+        println!("Ok, now enter password for login {login}. If login doesn't exits, it'll be created with this password");
+        let mut pass = &mut String::new();
+        let stdin = io::stdin();
+        stdin.read_line(pass).unwrap();
+        if check_pass(pass.clone()) == false {
+            println!("Access denied. Password didn't match");
+            continue;
+        }
+        println!("Assess granted");
+
+        user = db::get_user(login, password);
+
+
+    }
+
+}
+
+
+
+
 

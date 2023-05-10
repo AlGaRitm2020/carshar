@@ -1,4 +1,3 @@
-use std::io;
 use std::time;
 use std ::net::{TcpListener,TcpStream};
 use std::io::{Read,Write};
@@ -27,10 +26,15 @@ fn handle_sender(mut stream: TcpStream) -> io::Result<()>{
     // success value
     Ok(())
 }
-
-
+use std::{error::Error, io, process};
+mod db;
+use db::select_users;
 fn main() -> io::Result<()>{
     // Enable port 7878 binding
+    if let Err(err) = select_users() {
+        println!("error running example: {}", err);
+        process::exit(1);
+    }
     let receiver_listener = TcpListener::bind("127.0.0.1:7878").expect("Failed and bind with the sender");
     // Getting a handle of the underlying thread.
     let mut thread_vec: Vec<thread::JoinHandle<()>> = Vec::new();
