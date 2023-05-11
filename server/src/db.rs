@@ -15,21 +15,17 @@ fn user_exist(login: String) -> bool {
 */
 
 use csv;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+#[warn(unused_imports)]
 use std::{error::Error, io, process};
 
-#[derive(Debug, serde::Deserialize)]
-struct User{
-
+#[derive(Debug,  Deserialize, Serialize)]
+pub struct User{
     login: String,
-//     #[serde(deserialize_with = "csv::invalid_option")]
-    id: u32,   password_hash: String,
+    hashpass: String,
 }
-
+/*
 pub fn select_users() -> Result<(), Box<dyn Error>> {
-     let csv = "login,password_hash,id
-        1948,Porsche,356
-        1967,Ford,228";
 
     let mut reader = csv::Reader::from_path("users.csv")?;
 
@@ -37,28 +33,47 @@ pub fn select_users() -> Result<(), Box<dyn Error>> {
         let user: User = result?;
         println!("{:?}", user);
     }
-/*
-    for record in reader.records() {
-        let record = record?;
-        println!(
-            "In {}, {} built the {} model. It is a {}.",
-            &record[0],
-            &record[1],
-            &record[2],
-            &record[3]
-        );
-    }
-    */
-    /*
-    for result in rdr.deserialize() {
-        // Notice that we need to provide a type hint for automatic
-        // deserialization.
-        println!("{:?}", result);
-        let user: User= result?;
-        println!("{:?}", user);
-    }
-    */
     Ok(())
+}
+*/
+pub enum UserCheckRes<User> {
+    Verified(User),
+    WrongPassword,
+}
+
+pub fn get_user(login: String, hashpass: String) -> Result<UserCheckRes<User>, Box<dyn Error>> {
+
+
+    let mut reader = csv::Reader::from_path("users.csv")?;
+
+    for result in reader.deserialize::<User>() {
+        let user: User = result?;
+        if user.login == login {
+            if user.hashpass == hashpass {
+                return Ok(UserCheckRes::Verified(user));
+            }
+            else {
+                return Ok(UserCheckRes::WrongPassword);
+            }
+        }
+    }
+//    user = create_user
+
+    println!("User not found. Creating...");
+    create_user(login, hashpass)
+}
+
+fn create_user(login: String, hashpass: String) -> Result<UserCheckRes<User>, Box<dyn Error>> {
+    let user = User{login, hashpass};
+
+    let mut wrt = csv::WriterBuilder::new().from_path("users.csv")?;
+   //wrt.write_record(&[&user.login, &user.hashpass])?;
+   //wrt.write_record(&["login", "hashpass"])?;
+    wrt.serialize(&user)?;
+//    wrt.flush()?;
+    println!("user was succesfully created!!");
+   Ok(UserCheckRes::Verified(user))
+
 }
 
 

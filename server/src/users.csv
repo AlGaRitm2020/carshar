@@ -1,5 +1,2 @@
-login,password_hash,id
-algaritm,hsa,1
-lox,fff,2
-mui,228,3
-
+login,hashpass
+my_login,my_pass

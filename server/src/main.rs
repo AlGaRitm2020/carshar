@@ -28,13 +28,22 @@ fn handle_sender(mut stream: TcpStream) -> io::Result<()>{
 }
 use std::{error::Error, io, process};
 mod db;
-use db::select_users;
+use db::get_user;
 fn main() -> io::Result<()>{
-    // Enable port 7878 binding
-    if let Err(err) = select_users() {
+    let stdin = io::stdin();
+    let mut login =&mut String::new();
+    let passhash =&mut String::new();
+    stdin.read_line(login).unwrap();
+    login.pop();
+
+    stdin.read_line(passhash).unwrap();
+    passhash.pop();
+
+    if let Err(err) = get_user(login.to_string(), passhash.to_string()) {
         println!("error running example: {}", err);
         process::exit(1);
     }
+    // Enable port 7878 binding
     let receiver_listener = TcpListener::bind("127.0.0.1:7878").expect("Failed and bind with the sender");
     // Getting a handle of the underlying thread.
     let mut thread_vec: Vec<thread::JoinHandle<()>> = Vec::new();
