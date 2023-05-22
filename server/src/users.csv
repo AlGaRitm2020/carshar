@@ -1,2 +1,2 @@
-login,hashpass
-my_login,my_pass
+login,hashpass,is_admin
+my_login,my_pass,true

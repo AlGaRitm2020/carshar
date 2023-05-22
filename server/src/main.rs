@@ -26,28 +26,46 @@ fn handle_sender(mut stream: TcpStream) -> io::Result<()>{
     // success value
     Ok(())
 }
+iuse sha256::{digest, try_digest};
 use std::{error::Error, io, process};
 mod db;
 use db::get_user;
+use db::User;
 fn main() -> io::Result<()>{
-    let stdin = io::stdin();
-    let mut login =&mut String::new();
-    let passhash =&mut String::new();
-    stdin.read_line(login).unwrap();
-    login.pop();
+    loop {
+        let stdin = io::stdin();
+        let mut login =&mut String::new();
+        let passhash =&mut String::new();
+        stdin.read_line(login).unwrap();
+        login.pop();
 
-    stdin.read_line(passhash).unwrap();
-    passhash.pop();
+        stdin.read_line(passhash).unwrap();
+        passhash.pop();
 
-    if let Err(err) = get_user(login.to_string(), passhash.to_string()) {
-        println!("error running example: {}", err);
-        process::exit(1);
+        if let Err(err) = get_user(login.to_string(), passhash.to_string()) {
+            println!("error running example: {}", err);
+            process::exit(1);
+        }
+        match get_user(login.to_string(), passhash.to_string()) {
+            Err(err) => {println!("error running example: {}", err);
+                        process::exit(1);},
+            Ok(db::UserCheckRes::WrongPassword) => {
+                println!("Wrong password\nTry again..");
+
+            },
+
+            Ok(db::UserCheckRes::Verified(user)) => {
+                let user: User = user;
+                println!("Access granted for {}", &user.get_login());
+
+            }
+
+        }
     }
-    // Enable port 7878 binding
     let receiver_listener = TcpListener::bind("127.0.0.1:7878").expect("Failed and bind with the sender");
     // Getting a handle of the underlying thread.
     let mut thread_vec: Vec<thread::JoinHandle<()>> = Vec::new();
-    // listen to incoming connections messages and bind them to a sever socket address.
+    // listen to incoming connections messages and bind them to a sloginever socket address.
     for stream in receiver_listener.incoming() {
         let stream = stream.expect("failed");
         // let the receiver connect with the sender

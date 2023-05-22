@@ -23,7 +23,6 @@ use std::{error::Error, io, process};
 pub struct User{
     login: String,
     hashpass: String,
-    is_admin: bool,
 }
 impl User {
     pub fn get_login(self) -> String {
@@ -35,7 +34,7 @@ pub enum UserCheckRes<User> {
     WrongPassword,
 }
 // ---- USER BLOCK
-pub fn get_user(login: String, hashpass: String, with_admin_rights:bool) -> Result<UserCheckRes<User>, Box<dyn Error>> {
+pub fn get_user(login: String, hashpass: String) -> Result<UserCheckRes<User>, Box<dyn Error>> {
     let mut reader = csv::Reader::from_path("users.csv")?;
     for result in reader.deserialize::<User>() {
         let user: User = result?;
@@ -49,11 +48,11 @@ pub fn get_user(login: String, hashpass: String, with_admin_rights:bool) -> Resu
         }
     }
     println!("User not found. Creating...");
-    create_user(login, hashpass, with_admin_rights)
+    create_user(login, hashpass)
 }
 
-fn create_user(login: String, hashpass: String, is_admin: bool) -> Result<UserCheckRes<User>, Box<dyn Error>> {
-    let user = User{login, hashpass, is_admin};
+fn create_user(login: String, hashpass: String) -> Result<UserCheckRes<User>, Box<dyn Error>> {
+    let user = User{login, hashpass};
 
     let mut wrt = csv::WriterBuilder::new().from_path("users.csv")?;
    //wrt.write_record(&[&user.login, &user.hashpass])?;
@@ -74,17 +73,17 @@ pub struct Booking {
     date: String,
 }
 impl Booking {
-    pub fn get_model(&self) -> String {
-        self.clone().car_model
+    pub fn get_model(self) -> String {
+        self.car_model
     }
-    pub fn get_id(&self) -> u64{
+    pub fn get_id(self) -> u64{
         self.car_id
     }
-    pub fn get_user_login(&self) -> String {
-        self.clone().user_login
+    pub fn get_user_login(self) -> String {
+        self.user_login
     }
-    pub fn get_date(&self) -> String {
-        self.clone().date
+    pub fn get_date(self) -> String {
+        self.date
     }
 }
 
@@ -95,10 +94,10 @@ pub struct Car{
     model: String,
 }
 impl Car{
-    pub fn get_model(&self) -> String {
-        self.clone().model
+    pub fn get_model(self) -> String {
+        self.model
     }
-    pub fn get_id(&self) -> u64 {
+    pub fn get_id(self) -> u64 {
         self.id
     }
     pub fn get_from_model_and_date(model: String, date: String) -> Result<Option<Car>, Box<dyn Error>> {
@@ -119,8 +118,8 @@ impl Car{
 
             for (i, id) in car_ids.clone().iter().enumerate() {
 
-                if id.to_owned() == booking.get_id(){
-                    if booking.date == date {
+                if id == &booking.clone().get_id(){
+                    if &booking.date == &date {
                         car_ids.remove(i);
                     }
                 }
@@ -141,21 +140,16 @@ impl Car{
 }
 
 impl Booking{
-   pub fn from_car(car: Car, date: String, login: String) -> Booking {
-        Booking {
-            car_id: car.get_id(),
-            car_model: car.get_model(),
-            user_login: login,
-            date,
+   pub fn make_booking(car: Car, date: date) -> Result<Booking, Box<dyn Error>> {
 
-        }
-    }
+
+
+   }
 
 }
 
 // ___ Booking BLOCK
 //
-/*
 pub fn make_booking(car_model: String, user_login: String,
                     date: String) -> Result<(), Box<dyn Error>> {
 
@@ -203,7 +197,6 @@ pub fn make_booking(car_model: String, user_login: String,
 
 }
 
-*/
 
 
 
