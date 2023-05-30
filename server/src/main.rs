@@ -26,12 +26,14 @@ fn handle_sender(mut stream: TcpStream) -> io::Result<()>{
     // success value
     Ok(())
 }
-iuse sha256::{digest, try_digest};
+use sha256::{digest};
 use std::{error::Error, io, process};
 mod db;
 use db::get_user;
 use db::User;
 fn main() -> io::Result<()>{
+
+
     loop {
         let stdin = io::stdin();
         let mut login =&mut String::new();
@@ -42,11 +44,15 @@ fn main() -> io::Result<()>{
         stdin.read_line(passhash).unwrap();
         passhash.pop();
 
-        if let Err(err) = get_user(login.to_string(), passhash.to_string()) {
+        let passhash = digest(passhash.clone());
+
+/*
+        if let Err(err) = get_user(login.to_string(), passhash.to_string(), true) {
             println!("error running example: {}", err);
             process::exit(1);
         }
-        match get_user(login.to_string(), passhash.to_string()) {
+*/
+        match get_user(login.to_string(), passhash.to_string(), true) {
             Err(err) => {println!("error running example: {}", err);
                         process::exit(1);},
             Ok(db::UserCheckRes::WrongPassword) => {

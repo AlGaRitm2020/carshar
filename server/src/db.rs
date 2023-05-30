@@ -16,6 +16,7 @@ fn user_exist(login: String) -> bool {
 
 use csv;
 use serde::{Deserialize, Serialize};
+use std::{os::unix::prelude::OpenOptionsExt, fs::OpenOptions, io::{BufReader, BufWriter, BufRead, Write}};
 #[warn(unused_imports)]
 use std::{error::Error, io, process};
 
@@ -26,8 +27,67 @@ pub struct User{
     is_admin: bool,
 }
 impl User {
-    pub fn get_login(self) -> String {
-        return self.login
+    pub fn get_login(&self) -> &String {
+        return &self.clone().login
+    }
+    pub fn get_hashpass(&self) -> &String{
+        &self.clone().hashpass
+    }
+
+    // *** required implementation
+    pub fn delete(&mut self) -> Result<(), Box<dyn Error>> {
+
+        Ok(())
+
+    }
+    fn new(login: String, hashpass: String, is_admin: bool) -> Result<UserCheckRes<User>, Box<dyn Error>> {
+        let user = User{login, hashpass, is_admin};
+
+        let mut file = OpenOptions::new()
+            .append(true)
+            .write(true)
+            .open("src/users.csv")
+            .unwrap();
+
+        let mut wrt = csv::WriterBuilder::new()
+            .has_headers(true)
+            .from_writer(file);
+   //wrt.write_record(&[&user.login, &user.hashpass])?;
+        //wrt.write_record(&["login", "hashpass"])?;
+        wrt.serialize(&user)?;
+        wrt.flush()?;
+
+
+
+        // deleting header strings
+        //
+        use std::fs;
+        use std::fs::File;
+        use std::io::BufReader;
+
+        use std::io::BufWriter;
+        {
+        let mut file: File = File::open("src/users.csv").unwrap();
+        let mut out_file: File = std::fs::OpenOptions::new()
+            .create_new(true)
+            .open("src/users.csv.temp")
+            .unwrap();
+
+
+        let reader = BufReader::new(&file);
+        let mut writer = BufWriter::new(&out_file);
+
+        for (index, line) in reader.lines().enumerate() {
+            let line = line.as_ref().unwrap();
+            if line.contains("login,passhash,is_admin") {
+                writeln!(writer, "{}", line);
+            }
+        }
+        }
+        fs::rename("src/users.csv.temp", "src/users.csv").unwrap();
+
+        println!("user was succesfully created!!");
+        Ok(UserCheckRes::Verified(user))
     }
 }
 pub enum UserCheckRes<User> {
@@ -36,7 +96,7 @@ pub enum UserCheckRes<User> {
 }
 // ---- USER BLOCK
 pub fn get_user(login: String, hashpass: String, with_admin_rights:bool) -> Result<UserCheckRes<User>, Box<dyn Error>> {
-    let mut reader = csv::Reader::from_path("users.csv")?;
+    let mut reader = csv::Reader::from_path("src/users.csv")?;
     for result in reader.deserialize::<User>() {
         let user: User = result?;
         if user.login == login {
@@ -49,20 +109,10 @@ pub fn get_user(login: String, hashpass: String, with_admin_rights:bool) -> Resu
         }
     }
     println!("User not found. Creating...");
-    create_user(login, hashpass, with_admin_rights)
+    User::new(login, hashpass, with_admin_rights)
 }
 
-fn create_user(login: String, hashpass: String, is_admin: bool) -> Result<UserCheckRes<User>, Box<dyn Error>> {
-    let user = User{login, hashpass, is_admin};
 
-    let mut wrt = csv::WriterBuilder::new().from_path("users.csv")?;
-   //wrt.write_record(&[&user.login, &user.hashpass])?;
-   //wrt.write_record(&["login", "hashpass"])?;
-    wrt.serialize(&user)?;
-//    wrt.flush()?;
-    println!("user was succesfully created!!");
-   Ok(UserCheckRes::Verified(user))
-}
 // ___ USER BLOCK END ___
 
 
