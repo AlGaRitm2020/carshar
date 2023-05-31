@@ -63,6 +63,7 @@ fn main() -> io::Result<()>{
             Ok(db::UserCheckRes::Verified(user)) => {
                 let user: User = user;
                 println!("Access granted for {}", &user.get_login());
+                break;
 
             }
 
