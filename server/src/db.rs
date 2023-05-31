@@ -50,7 +50,7 @@ impl User {
             .unwrap();
 
         let mut wrt = csv::WriterBuilder::new()
-            .has_headers(true)
+            .has_headers(false)
             .from_writer(file);
    //wrt.write_record(&[&user.login, &user.hashpass])?;
         //wrt.write_record(&["login", "hashpass"])?;
@@ -58,7 +58,7 @@ impl User {
         wrt.flush()?;
 
 
-
+/*
         // deleting header strings
         //
         use std::fs;
@@ -79,13 +79,14 @@ impl User {
 
         for (index, line) in reader.lines().enumerate() {
             let line = line.as_ref().unwrap();
+            println!("{}", line);
             if line.contains("login,passhash,is_admin") {
                 writeln!(writer, "{}", line);
             }
         }
         }
         fs::rename("src/users.csv.temp", "src/users.csv").unwrap();
-
+*/
         println!("user was succesfully created!!");
         Ok(UserCheckRes::Verified(user))
     }
